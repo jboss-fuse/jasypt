@@ -25,6 +25,7 @@ import java.security.Provider;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
@@ -209,6 +210,9 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
     // be applied).
     private boolean usingFixedSalt = false;
     private byte[] fixedSaltInUse = null;
+    
+    // Initialization Vector to be used for encryption and decryption.
+    private byte[] ivInUse = null;
 
     
     
@@ -724,6 +728,8 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                 this.saltSizeBytes = algorithmBlockSize;
             }
             
+            // Initialize Initialization Vector
+            this.ivInUse = new byte[algorithmBlockSize];
             
             this.usingFixedSalt = (this.saltGenerator instanceof FixedSaltGenerator);
             
@@ -740,7 +746,7 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                  */
                 
                 final PBEParameterSpec parameterSpec = 
-                    new PBEParameterSpec(this.fixedSaltInUse, this.keyObtentionIterations);
+                    new PBEParameterSpec(this.fixedSaltInUse, this.keyObtentionIterations, new IvParameterSpec(ivInUse));
 
                 try {
                     
@@ -894,7 +900,7 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                  * Perform encryption using the Cipher
                  */
                 final PBEParameterSpec parameterSpec = 
-                    new PBEParameterSpec(salt, this.keyObtentionIterations);
+                    new PBEParameterSpec(salt, this.keyObtentionIterations, new IvParameterSpec(ivInUse));
     
                 synchronized (this.encryptCipher) {
                     this.encryptCipher.init(
@@ -1036,7 +1042,7 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                     this.decryptCipher.init(
                             Cipher.DECRYPT_MODE, this.key, parameterSpec);
                     decryptedMessage = 
-                        this.decryptCipher.doFinal(encryptedMessageKernel);
+                        this.decryptCipher.doFinal(encryptedMessageKernel, new IvParameterSpec(ivInUse));
                 }
 
             }

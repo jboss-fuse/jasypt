@@ -139,7 +139,7 @@
           <encoding>US-ASCII</encoding>
         </configuration>
       </plugin>
-      
+      <!-- TODO: fix java doc build
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -158,7 +158,7 @@
           </execution>
         </executions>
       </plugin>
-      
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
@@ -172,7 +172,7 @@
           </execution>
         </executions>
       </plugin>
-      
+     <!-- TODO: Fix Jar signing
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
@@ -187,7 +187,7 @@
           </execution>
         </executions>
       </plugin>
-       
+      --> 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
