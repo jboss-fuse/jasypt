@@ -22,9 +22,7 @@ package org.jasypt.encryption.pbe;
 import java.security.InvalidKeyException;
 import java.security.Provider;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -126,6 +124,40 @@ import org.jasypt.salt.SaltGenerator;
  * 
  */
 public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncryptor {
+
+    /**
+     * Abstracts differences between Java7 and Java8 PBE APIs.
+     */
+    private abstract static class PBEParameterSpecFactory {
+        static PBEParameterSpecFactory INSTANCE;
+        abstract PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3);
+
+        static {
+            // In Java8 we have an additional constructor.
+            if( PBEParameterSpec.class.getDeclaredConstructors().length > 1) {
+
+                INSTANCE = new PBEParameterSpecFactory() {
+                    PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3) {
+                        return new PBEParameterSpec(p1, p2, new IvParameterSpec(p3));
+                    }
+                };
+
+            } else {
+
+                // In Java7and before we only have 1 constructor.
+                INSTANCE = new PBEParameterSpecFactory() {
+                    PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3) {
+                        return new PBEParameterSpec(p1, p2);
+                    }
+                };
+            }
+        }
+    }
+
+
+    private static PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3) {
+        return PBEParameterSpecFactory.INSTANCE.createPBEParameterSpec(p1, p2, p3);
+    }
 
 
     /**
@@ -744,9 +776,9 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                  * we will be using a fixed salt, this can be done just once, which
                  * means a better performance at the encrypt/decrypt methods. 
                  */
-                
-                final PBEParameterSpec parameterSpec = 
-                    new PBEParameterSpec(this.fixedSaltInUse, this.keyObtentionIterations, new IvParameterSpec(ivInUse));
+
+                final PBEParameterSpec parameterSpec =
+                        createPBEParameterSpec(this.fixedSaltInUse, this.keyObtentionIterations, this.ivInUse);
 
                 try {
                     
@@ -899,8 +931,7 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                 /*
                  * Perform encryption using the Cipher
                  */
-                final PBEParameterSpec parameterSpec = 
-                    new PBEParameterSpec(salt, this.keyObtentionIterations, new IvParameterSpec(ivInUse));
+                final PBEParameterSpec parameterSpec = createPBEParameterSpec(salt, this.keyObtentionIterations, ivInUse);
     
                 synchronized (this.encryptCipher) {
                     this.encryptCipher.init(
@@ -1042,7 +1073,7 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                     this.decryptCipher.init(
                             Cipher.DECRYPT_MODE, this.key, parameterSpec);
                     decryptedMessage = 
-                        this.decryptCipher.doFinal(encryptedMessageKernel, new IvParameterSpec(ivInUse));
+                        this.decryptCipher.doFinal(encryptedMessageKernel);
                 }
 
             }
