@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.apache.servicemix.bundles</groupId>
+	<artifactId>org.apache.servicemix.bundles.jasypt</artifactId>
+	<version>1.9.3_1</version>
+	<packaging>bundle</packaging>
+	<name>Apache ServiceMix :: Bundles :: ${pkgArtifactId}</name>
+	<description>This OSGi bundle wraps ${pkgArtifactId} ${pkgVersion} jar file.</description>
+
+	<properties>
+		<pkgGroupId>org.jasypt</pkgGroupId>
+		<pkgArtifactId>jasypt</pkgArtifactId>
+		<pkgVersion>1.9.3</pkgVersion>
+        <servicemix.legal.version>1.0</servicemix.legal.version>
+        <servicemix.osgi.export>${servicemix.osgi.export.pkg}*;version=${pkgVersion};-split-package:=merge-first</servicemix.osgi.export>
+		<servicemix.osgi.export.pkg>
+			org.jasypt
+		</servicemix.osgi.export.pkg>
+		<servicemix.osgi.import.pkg>
+			javax.crypto*,
+			com.ibm.icu.text*;resolution:=optional,
+			javax.servlet*;resolution:=optional,
+		</servicemix.osgi.import.pkg>
+        <servicemix.osgi.private.pkg />
+        <servicemix.osgi.dynamicimport.pkg />
+        <servicemix.osgi.failok>false</servicemix.osgi.failok>
+        <servicemix.osgi.embed.dependency />
+        <servicemix.osgi.fragment.host />
+        <servicemix.osgi.native />
+        <servicemix.osgi.activator />
+        <servicemix.osgi.provide.capability />
+        <servicemix.osgi.require.capability />
+        <servicemix.spi.provider />
+        <servicemix.spi.consumer />
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>${pkgGroupId}</groupId>
+			<artifactId>${pkgArtifactId}</artifactId>
+			<version>${pkgVersion}</version>
+		</dependency>
+
+		<!-- sources -->
+		<dependency>
+			<groupId>${pkgGroupId}</groupId>
+			<artifactId>${pkgArtifactId}</artifactId>
+			<version>${pkgVersion}</version>
+			<classifier>sources</classifier>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Description>${project.description}</Bundle-Description>
+                        <Export-Package>${servicemix.osgi.export}</Export-Package>
+                        <Import-Package>${servicemix.osgi.import.pkg}</Import-Package>
+                        <Private-Package>${servicemix.osgi.private.pkg}</Private-Package>
+                        <DynamicImport-Package>${servicemix.osgi.dynamicimport.pkg}</DynamicImport-Package>
+                        <Embed-Dependency>${servicemix.osgi.embed.dependency}</Embed-Dependency>
+                        <Bundle-NativeCode>${servicemix.osgi.native}</Bundle-NativeCode>
+                        <Bundle-Activator>${servicemix.osgi.activator}</Bundle-Activator>
+                        <Fragment-Host>${servicemix.osgi.fragment.host}</Fragment-Host>
+                        <Provide-Capability>${servicemix.osgi.provide.capability}</Provide-Capability>
+                        <Require-Capability>${servicemix.osgi.require.capability}</Require-Capability>
+                        <SPI-Provider>${servicemix.spi.provider}</SPI-Provider>
+                        <SPI-Consumer>${servicemix.spi.consumer}</SPI-Consumer>
+                        <_failok>${servicemix.osgi.failok}</_failok>
+                        <_versionpolicy>[$(version;==;$(@)),$(version;+;$(@)))</_versionpolicy>
+                        <_removeheaders>Ignore-Package,Include-Resource,Private-Package,Embed-Dependency
+                        </_removeheaders>
+                    </instructions>
+                    <unpackBundle>true</unpackBundle>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-legal</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.apache.servicemix.legal</groupId>
+                                    <artifactId>legal</artifactId>
+                                    <version>${servicemix.legal.version}</version>
+                                    <type>xml</type>
+                                    <outputDirectory>target/legal/</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                            <stripVersion>true</stripVersion>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.servicemix.legal</groupId>
+                        <artifactId>legal</artifactId>
+                        <version>${servicemix.legal.version}</version>
+                        <type>xml</type>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-remote-resources-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <configuration>
+                            <resourceBundles>
+                                <resourceBundle>org.apache:apache-jar-resource-bundle:1.4</resourceBundle>
+                            </resourceBundles>
+                            <supplementalModels>
+                                <supplementalModel>target/legal/legal.xml</supplementalModel>
+                            </supplementalModels>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.servicemix.bundles</groupId>
+                        <artifactId>src-assembly</artifactId>
+                        <version>1.0</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>make-src-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>src-assembly</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.7.1</version>
+				<executions>
+					<execution>
+						<id>sources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>*:*:*:sources</include>
+									<include>${project.groupId}:${project.artifactId}:*:sources</include>
+								</includes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>**/*.class</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Bundle-SymbolicName>${project.artifactId}.source</Bundle-SymbolicName>
+										<Eclipse-SourceBundle>${project.artifactId};version="${project.version}"</Eclipse-SourceBundle>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+							<promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>sources</shadedClassifierName>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>${pkgGroupId}:${pkgArtifactId}</include>
+								</includes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>${pkgGroupId}:${pkgArtifactId}</artifact>
+									<excludes>
+										<exclude>**</exclude>
+									</excludes>
+								</filter>
+							</filters>
+							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+							<createDependencyReducedPom>true</createDependencyReducedPom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
