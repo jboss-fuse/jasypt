@@ -1066,9 +1066,9 @@ public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordE
                 /*
                  * Perform decryption using the Cipher
                  */
-                final PBEParameterSpec parameterSpec = 
-                    new PBEParameterSpec(salt, this.keyObtentionIterations);
-                     
+                final PBEParameterSpec parameterSpec =
+                        createPBEParameterSpec(salt, this.keyObtentionIterations, this.ivInUse);
+
                 synchronized (this.decryptCipher) {
                     this.decryptCipher.init(
                             Cipher.DECRYPT_MODE, this.key, parameterSpec);
