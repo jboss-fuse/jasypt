@@ -19,10 +19,14 @@
  */
 package org.jasypt.encryption.pbe;
 
+import java.lang.reflect.Constructor;
 import java.security.InvalidKeyException;
 import java.security.Provider;
+import java.security.spec.AlgorithmParameterSpec;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -125,38 +129,17 @@ import org.jasypt.salt.SaltGenerator;
  */
 public final class StandardPBEByteEncryptor implements PBEByteCleanablePasswordEncryptor {
 
-    /**
-     * Abstracts differences between Java7 and Java8 PBE APIs.
-     */
-    private abstract static class PBEParameterSpecFactory {
-        static PBEParameterSpecFactory INSTANCE;
-        abstract PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3);
-
-        static {
-            // In Java8 we have an additional constructor.
-            if( PBEParameterSpec.class.getDeclaredConstructors().length > 1) {
-
-                INSTANCE = new PBEParameterSpecFactory() {
-                    PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3) {
-                        return new PBEParameterSpec(p1, p2, new IvParameterSpec(p3));
-                    }
-                };
-
-            } else {
-
-                // In Java7and before we only have 1 constructor.
-                INSTANCE = new PBEParameterSpecFactory() {
-                    PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3) {
-                        return new PBEParameterSpec(p1, p2);
-                    }
-                };
-            }
-        }
-    }
-
-
     private static PBEParameterSpec createPBEParameterSpec(byte[] p1, int p2, byte[] p3) {
-        return PBEParameterSpecFactory.INSTANCE.createPBEParameterSpec(p1, p2, p3);
+    	// In Java8 we have a constructor to initialize parameter spec with initialization vector.
+		try {
+			Class[] parameterTypes = new Class[] { byte[].class, int.class, AlgorithmParameterSpec.class };
+			Constructor ctor = PBEParameterSpec.class.getDeclaredConstructor(parameterTypes);
+			return (PBEParameterSpec)  ctor.newInstance(new Object[] { p1, new Integer(p2) , new IvParameterSpec(p3) });
+		} catch (Exception e) {
+			// This run-time can not construct parameter spec with initialization vector
+			// Fall back to constructor without initialization vector
+		}
+		return new PBEParameterSpec(p1, p2);
     }
 
 
