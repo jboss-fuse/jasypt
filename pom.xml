@@ -4,7 +4,7 @@
 
   <groupId>org.jasypt</groupId>
   <artifactId>jasypt-parent</artifactId>
-  <version>1.9.3.redhat_2</version>
+  <version>1.9.3.redhat_3</version>
   <packaging>pom</packaging>
 
   <name>jasypt-parent</name>
